@@ -244,7 +244,8 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
     <div className="w-full">
       <div className="my-8 rounded-lg space-y-2">
         <div className="text-md font-medium text-gray-400">
-          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/{token0Label}
+          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/
+          {token0Label}
         </div>
         <div className="text-md font-medium text-gray-400">
           Current Tick: {currentTick.exact?.toFixed(2)}
@@ -309,7 +310,8 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
             <Tooltip
               formatter={(value: number, name: string) => {
                 let displayName = '';
-                if (name === 'usedLiquidity') displayName = 'Borrowed Liquidity';
+                if (name === 'usedLiquidity')
+                  displayName = 'Borrowed Liquidity';
                 else if (name === 'availableLiquidity')
                   displayName = 'Available Liquidity';
                 else if (name === 'totalLiquidity')

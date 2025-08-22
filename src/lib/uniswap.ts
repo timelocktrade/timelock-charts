@@ -228,32 +228,3 @@ export const getToken1ToSupply = async (
 
   return liquidity;
 };
-
-export const swap = async (
-  tokenIn: `0x${string}`,
-  tokenOut: `0x${string}`,
-  amountIn: bigint,
-  amountOutMinimum: bigint,
-) => {
-  if (!account) {
-    throw new Error('Account not connected');
-  }
-  const fee = await primePoolContract.read.fee();
-  const deadline = BigInt(Math.floor(Date.now() / 1000 + 30));
-  const sqrtPriceLimitX96 = ((await getCurrentSqrtPriceX96()) * 105n) / 100n;
-  const recipient = account.address;
-
-  const res = await swapRouterContract.write.exactInputSingle([
-    {
-      tokenIn,
-      tokenOut,
-      fee,
-      amountIn,
-      amountOutMinimum,
-      recipient,
-      sqrtPriceLimitX96,
-      deadline,
-    },
-  ]);
-  console.log(res);
-};
