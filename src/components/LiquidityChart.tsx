@@ -270,7 +270,7 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
             <div className="w-4 h-2 bg-[#6666a8] rounded-b"></div>
           </div>
           <span className="text-sm font-medium text-gray-400">
-            {token1Label} (Top: Used, Bottom: Available)
+            {token1Label} (Top: Borrowed, Bottom: Available)
           </span>
         </div>
         <div className="flex items-center gap-2">
