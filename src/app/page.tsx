@@ -10,7 +10,7 @@ export default function Home() {
       {positions && positions.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">
-            Liquidity Distribution by Tick
+            Timelock Liquidity Distribution (testnet)
           </h2>
           <LiquidityChart positions={positions || []} />
         </div>

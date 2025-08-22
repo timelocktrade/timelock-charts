@@ -309,7 +309,7 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
             <Tooltip
               formatter={(value: number, name: string) => {
                 let displayName = '';
-                if (name === 'usedLiquidity') displayName = 'Used Liquidity';
+                if (name === 'usedLiquidity') displayName = 'Borrowed Liquidity';
                 else if (name === 'availableLiquidity')
                   displayName = 'Available Liquidity';
                 else if (name === 'totalLiquidity')
