@@ -3,7 +3,6 @@ import {
   account,
   erc20,
   primePoolContract,
-  swapRouterContract,
   uniswapMathLensContract,
   uniswapPool,
 } from './contracts';
