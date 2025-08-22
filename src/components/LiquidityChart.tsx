@@ -244,7 +244,7 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
     <div className="w-full">
       <div className="my-8 rounded-lg space-y-2">
         <div className="text-md font-medium text-gray-400">
-          Current Price: {currentPrice?.unscaled.toFixed(2)} USDC/WETH
+          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/{token0Label}
         </div>
         <div className="text-md font-medium text-gray-400">
           Current Tick: {currentTick.exact?.toFixed(2)}
