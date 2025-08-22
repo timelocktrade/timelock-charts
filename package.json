@@ -2,22 +2,43 @@
   "name": "timelock-charts",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start"
+    "build": "npm run codegen && next build --turbopack",
+    "start": "next start",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "fix": "gts fix",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch"
   },
   "dependencies": {
+    "dotenv": "^17.2.1",
+    "graphql-request": "^7.2.0",
+    "next": "15.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.0"
+    "recharts": "^3.1.2",
+    "viem": "^2.34.0",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-graphql-request": "^6.3.0",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.2.20",
+    "@types/node": "^22.7.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "gts": "^6.0.2",
+    "tailwindcss": "^4",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.12.0",
+    "bun": ">=0.7.0"
   }
 }

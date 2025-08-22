@@ -1,0 +1,27 @@
+query GetPositions {
+  user_liquidity_positions(limit: 500) {
+    totalCount
+    items {
+      token_id
+      tick_lower
+      tick_upper
+      pool
+      total_liquidity
+      used_liquidity
+    }
+  }
+}
+
+query GetPositionsByOwner($owner: String!) {
+  user_liquidity_positions(where: {user_address: $owner}, limit: 500) {
+    totalCount
+    items {
+      token_id
+      tick_lower
+      tick_upper
+      pool
+      total_liquidity
+      used_liquidity
+    }
+  }
+}
