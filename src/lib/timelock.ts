@@ -22,8 +22,10 @@ export type LiquidityPosition =
     usedAmount1: Amount;
   };
 
-export const listAllPositions = async () => {
-  const result = await sdk.GetPositions();
+export const listPositions = async (owner?: string) => {
+  const result = await (owner
+    ? sdk.GetPositionsByOwner({owner})
+    : sdk.GetPositions());
   const raw = result.user_liquidity_positions.items;
 
   const tickLowers = raw.map(r => r.tick_lower!);
@@ -44,5 +46,4 @@ export const listAllPositions = async () => {
     usedAmount1: usedAmounts.amounts1[i],
   }));
   return positions;
-  // return raw;
 };

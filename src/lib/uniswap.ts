@@ -9,13 +9,15 @@ import {
 import {type Amount, unscaleAmount} from './numberUtils';
 import {getTokenData, type TokenData} from './tokens';
 
+export const tickSpacing = 10;
+
 export const getCurrentTick = async (poolAddress?: Address) => {
   const poolContract = poolAddress
     ? uniswapPool(poolAddress)
     : primePoolContract;
 
   const {1: exact} = await poolContract.read.slot0();
-  const rounded = Math.floor((exact - 1) / 10) * 10;
+  const rounded = Math.floor(exact / tickSpacing) * tickSpacing;
   return {exact, rounded};
 };
 

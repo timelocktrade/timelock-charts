@@ -26,7 +26,7 @@ const configSchema = z.object({
 });
 
 export const config = configSchema.parse({
-  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545',
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
   ponderEndpoint:
     process.env.NEXT_PUBLIC_PONDER_ENDPOINT || 'http://localhost:42069',
   primePoolAddress: process.env.NEXT_PUBLIC_PRIME_POOL_ADDRESS,
