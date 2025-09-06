@@ -2,18 +2,21 @@ import {useEffect, useState} from 'react';
 import type {Address} from 'viem';
 import type {PoolContract} from '~/lib/contracts';
 import type {Amount} from '~/lib/numberUtils';
-import {getCurrentPrice} from '~/lib/uniswap';
+import {getPriceAtTick} from '~/lib/uniswap';
+import {useCurrentTick} from './useCurrentTick';
 
 export const useCurrentPrice = (pool: Address | PoolContract) => {
   const [currentPrice, setCurrentPrice] = useState<Amount>();
+  const currentTick = useCurrentTick(pool);
 
   useEffect(() => {
     const fetchCurrentPrice = async () => {
-      const price = await getCurrentPrice(pool);
+      if (!currentTick.exact) return;
+      const price = await getPriceAtTick(pool, currentTick.exact);
       setCurrentPrice(price);
     };
     void fetchCurrentPrice();
-  }, [pool]);
+  }, [pool, currentTick.exact]);
 
-  return currentPrice;
+  return {currentPrice, currentTick};
 };

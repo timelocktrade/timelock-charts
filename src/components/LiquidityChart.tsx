@@ -13,7 +13,6 @@ import {
 } from 'recharts';
 import {Address} from 'viem';
 import {useCurrentPrice} from '~/hooks/useCurrentPrice';
-import {useCurrentTick} from '~/hooks/useCurrentTick';
 import {useLiquidityPositions} from '~/hooks/useLiquidityPositions';
 import {usePoolData} from '~/hooks/usePoolData';
 import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
@@ -216,8 +215,7 @@ interface LiquidityChartProps {
 
 export function LiquidityChart({pool}: LiquidityChartProps) {
   const positions = useLiquidityPositions(pool);
-  const currentTick = useCurrentTick(pool);
-  const currentPrice = useCurrentPrice(pool);
+  const {currentPrice, currentTick} = useCurrentPrice(pool);
 
   const poolData = usePoolData(pool);
   const priceData = usePriceData(positions);

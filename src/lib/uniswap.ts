@@ -86,8 +86,8 @@ export const getCurrentPrice = async (pool: Address | PoolContract) => {
 };
 
 export const getPriceAtTick = async (
-  tick: number,
   pool: Address | PoolContract,
+  tick: number,
 ) => {
   const tokens = await getPoolTokensData(pool);
   const scaled = await uniswapMathLensContract.read.getPriceAtTick([tick]);
