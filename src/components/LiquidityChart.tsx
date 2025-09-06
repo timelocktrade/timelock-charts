@@ -307,30 +307,108 @@ export function LiquidityChart({pool}: LiquidityChartProps) {
             <YAxis tickFormatter={formatLiquidity} />
             <Tooltip
               formatter={(value: number, name: string) => {
-                let displayName = '';
-                if (name === 'usedLiquidity')
-                  displayName = 'Borrowed Liquidity';
-                else if (name === 'availableLiquidity')
-                  displayName = 'Available Liquidity';
-                else if (name === 'totalLiquidity')
-                  displayName = 'Total Liquidity';
+                return undefined;
+                // return ["", ""];
+                // let displayName = '';
+                // if (name === 'usedLiquidity')
+                //   displayName = 'Borrowed Liquidity';
+                // else if (name === 'availableLiquidity')
+                //   displayName = 'Available Liquidity';
+                // else if (name === 'totalLiquidity')
+                //   displayName = 'Total Liquidity';
 
-                return [formatLiquidity(value), displayName];
+                // return [formatLiquidity(value), displayName];
               }}
               labelFormatter={(tick: number) => {
-                const entry = chartData.find(d => d.tick === tick);
-                const priceText =
-                  'Price: ' + (entry?.price?.toFixed(2) || 'N/A');
+                const entry = chartData.find(d => d.tick === tick)!;
 
                 const amount0Text = entry?.amount0.unscaled
-                  ? `| ${token0Label}: ${formatAmount(entry.amount0.unscaled)}`
-                  : '';
+                  ? formatAmount(entry.amount0.unscaled)
+                  : '0';
 
                 const amount1Text = entry?.amount1.unscaled
-                  ? `| ${token1Label}: ${formatAmount(entry.amount1.unscaled)}`
-                  : '';
+                  ? formatAmount(entry.amount1.unscaled)
+                  : '0';
 
-                return `Tick: ${tick} ${amount0Text} ${amount1Text} | ${priceText}`;
+                const usedAmount0Text = entry?.usedAmount0.unscaled
+                  ? formatAmount(entry.usedAmount0.unscaled)
+                  : '0';
+
+                const usedAmount1Text = entry?.usedAmount1.unscaled
+                  ? formatAmount(entry.usedAmount1.unscaled)
+                  : '0';
+
+                return (
+                  <div className="space-y-3 min-w-96">
+                    <div className="text-sm font-semibold border-b border-gray-200 pb-1">
+                      Tick: <span className="text-blue-600">{tick}</span> |
+                      Price:{' '}
+                      <span className="text-green-600">
+                        {entry?.price?.toFixed(4) || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                        Total Liquidity
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            Liquidity
+                          </span>
+                          <span className="font-medium">
+                            {formatLiquidity(entry.totalLiquidity)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            {token0Label}
+                          </span>
+                          <span className="font-medium">{amount0Text}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            {token1Label}
+                          </span>
+                          <span className="font-medium">{amount1Text}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-orange-600 uppercase tracking-wide">
+                        Borrowed
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            Liquidity
+                          </span>
+                          <span className="font-medium">
+                            {formatLiquidity(entry.usedLiquidity)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            {token0Label}
+                          </span>
+                          <span className="font-medium text-orange-700">
+                            {usedAmount0Text}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500">
+                            {token1Label}
+                          </span>
+                          <span className="font-medium text-orange-700">
+                            {usedAmount1Text}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
               }}
               contentStyle={{
                 backgroundColor: '#ffffff',

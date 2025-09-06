@@ -6,7 +6,7 @@ import {config} from '~/config';
 import {getSdk, type GetPositionsByOwnerQuery} from '~/generated/graphql';
 import {handlerContract, type PoolContract} from '~/lib/contracts';
 import {batchGetAmountsFromLiquidity} from './uniswap';
-import type {Amount} from './numberUtils';
+import {zero, type Amount} from './numberUtils';
 import mutex from './mutex';
 
 const client = new GraphQLClient(`${config.ponderEndpoint}/graphql`);
@@ -24,17 +24,23 @@ export type LiquidityPosition =
     usedAmount1: Amount;
   };
 
-const getPositionsRaw = (() => {
-  let cached:
-    | GetPositionsByOwnerQuery['user_liquidity_positions']['items']
-    | undefined = undefined;
+const listPositionsRaw = (() => {
+  let cached: LiquidityPosition[] | undefined = undefined;
 
   return async () => {
-    const release = await mutex.acquire('getPostiionsRaw');
+    const release = await mutex.acquire('listPostiionsRaw');
 
     try {
       const result = await sdk.GetPositions();
-      cached = result.user_liquidity_positions.items;
+      const raw = result.user_liquidity_positions.items;
+
+      cached = raw.map(r => ({
+        ...r,
+        amount0: zero,
+        amount1: zero,
+        usedAmount0: zero,
+        usedAmount1: zero,
+      }));
       return cached;
     } finally {
       release();
@@ -42,13 +48,18 @@ const getPositionsRaw = (() => {
   };
 })();
 
-export const listPositions = async (pool: Address | PoolContract) => {
+export const listPositionsRawForPool = async (pool: Address | PoolContract) => {
   const poolAddress = (
     typeof pool === 'string' ? pool : pool.address
   ).toLowerCase();
 
-  const raw = await getPositionsRaw();
+  const raw = await listPositionsRaw();
   const filtered = raw.filter(p => p.pool?.toLowerCase() === poolAddress);
+  return filtered;
+};
+
+export const listPositions = async (pool: Address | PoolContract) => {
+  const filtered = await listPositionsRawForPool(pool);
 
   const tickLowers = filtered.map(r => r.tick_lower!);
   const tickUppers = filtered.map(r => r.tick_upper!);
