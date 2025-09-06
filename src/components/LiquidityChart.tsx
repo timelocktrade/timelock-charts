@@ -227,14 +227,6 @@ export function LiquidityChart({pool}: LiquidityChartProps) {
 
   const chartData = useChartData(positions, priceData, currentTick.rounded);
 
-  if (chartData.length === 0) {
-    return (
-      <div className="w-full h-96 flex items-center justify-center text-gray-400">
-        No liquidity positions to display
-      </div>
-    );
-  }
-
   const getBarColor = (tick: number) => {
     if (currentTick.rounded === undefined) return '#6666a8';
     if (tick === currentTick.rounded) return '#cc4444';
