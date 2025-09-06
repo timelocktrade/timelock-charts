@@ -7,6 +7,7 @@ import {getSdk, type GetPositionsByOwnerQuery} from '~/generated/graphql';
 import {handlerContract, type PoolContract} from '~/lib/contracts';
 import {batchGetAmountsFromLiquidity} from './uniswap';
 import type {Amount} from './numberUtils';
+import mutex from './mutex';
 
 const client = new GraphQLClient(`${config.ponderEndpoint}/graphql`);
 const sdk = getSdk(client);
@@ -23,13 +24,30 @@ export type LiquidityPosition =
     usedAmount1: Amount;
   };
 
+const getPositionsRaw = (() => {
+  let cached:
+    | GetPositionsByOwnerQuery['user_liquidity_positions']['items']
+    | undefined = undefined;
+
+  return async () => {
+    const release = await mutex.acquire('getPostiionsRaw');
+
+    try {
+      const result = await sdk.GetPositions();
+      cached = result.user_liquidity_positions.items;
+      return cached;
+    } finally {
+      release();
+    }
+  };
+})();
+
 export const listPositions = async (pool: Address | PoolContract) => {
   const poolAddress = (
     typeof pool === 'string' ? pool : pool.address
   ).toLowerCase();
 
-  const result = await sdk.GetPositions();
-  const raw = result.user_liquidity_positions.items;
+  const raw = await getPositionsRaw();
   const filtered = raw.filter(p => p.pool?.toLowerCase() === poolAddress);
 
   const tickLowers = filtered.map(r => r.tick_lower!);
