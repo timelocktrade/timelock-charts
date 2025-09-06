@@ -1,39 +1,32 @@
 import {Address} from 'viem';
 import {
-  account,
   erc20,
-  primePoolContract,
+  PoolContract,
   uniswapMathLensContract,
   uniswapPool,
 } from './contracts';
 import {type Amount, unscaleAmount} from './numberUtils';
 import {getTokenData, type TokenData} from './tokens';
+import mutex from './mutex';
 
-export const tickSpacing = 10;
-
-export const getCurrentTick = async (poolAddress?: Address) => {
-  const poolContract = poolAddress
-    ? uniswapPool(poolAddress)
-    : primePoolContract;
+export const getCurrentTick = async (pool: Address | PoolContract) => {
+  const poolContract = typeof pool === 'string' ? uniswapPool(pool) : pool;
+  const tickSpacing = await poolContract.read.tickSpacing();
 
   const {1: exact} = await poolContract.read.slot0();
   const rounded = Math.floor(exact / tickSpacing) * tickSpacing;
   return {exact, rounded};
 };
 
-export const getCurrentSqrtPriceX96 = async (poolAddress?: Address) => {
-  const poolContract = poolAddress
-    ? uniswapPool(poolAddress)
-    : primePoolContract;
+export const getCurrentSqrtPriceX96 = async (pool: Address | PoolContract) => {
+  const poolContract = typeof pool === 'string' ? uniswapPool(pool) : pool;
 
   const {0: sqrtPriceX96} = await poolContract.read.slot0();
   return sqrtPriceX96;
 };
 
-export const getPoolTokens = async (poolAddress?: Address) => {
-  const poolContract = poolAddress
-    ? uniswapPool(poolAddress)
-    : primePoolContract;
+export const getPoolTokens = async (pool: Address | PoolContract) => {
+  const poolContract = typeof pool === 'string' ? uniswapPool(pool) : pool;
 
   const [token0, token1] = await Promise.all([
     poolContract.read.token0(),
@@ -42,21 +35,33 @@ export const getPoolTokens = async (poolAddress?: Address) => {
   return [erc20(token0), erc20(token1)];
 };
 
-export const getPoolTokensData = async (poolAddress?: Address) => {
-  const poolContract = poolAddress
-    ? uniswapPool(poolAddress)
-    : primePoolContract;
+export const getPoolTokensData = (() => {
+  let cached: [TokenData, TokenData] | undefined = undefined;
 
-  const [token0, token1] = await Promise.all([
-    poolContract.read.token0(),
-    poolContract.read.token1(),
-  ]);
-  const [token0Data, token1Data] = await Promise.all([
-    getTokenData(token0),
-    getTokenData(token1),
-  ]);
-  return [token0Data, token1Data] as [TokenData, TokenData];
-};
+  return async (pool: Address | PoolContract) => {
+    const poolContract = typeof pool === 'string' ? uniswapPool(pool) : pool;
+
+    const release = await mutex.acquire(
+      'getPoolTokensData-' + poolContract.address,
+    );
+    try {
+      if (cached) return cached;
+
+      const [token0, token1] = await Promise.all([
+        poolContract.read.token0(),
+        poolContract.read.token1(),
+      ]);
+      const [token0Data, token1Data] = await Promise.all([
+        getTokenData(token0),
+        getTokenData(token1),
+      ]);
+      cached = [token0Data, token1Data];
+      return cached;
+    } finally {
+      release();
+    }
+  };
+})();
 
 const unscalePrice = (
   scaled: bigint,
@@ -70,43 +75,36 @@ const unscalePrice = (
   decimals: 18 + decimals1 - decimals0,
 });
 
-export const getCurrentPrice = async (poolAddress?: Address) => {
-  const tokens = await getPoolTokens(poolAddress);
+export const getCurrentPrice = async (pool: Address | PoolContract) => {
+  const tokens = await getPoolTokensData(pool);
 
-  const decimals = await Promise.all(
-    tokens.map(token => token.read.decimals()),
-  );
-  const currentTick = await getCurrentTick(poolAddress);
+  const currentTick = await getCurrentTick(pool);
   const scaled = await uniswapMathLensContract.read.getPriceAtTick([
     currentTick.exact,
   ]);
-  return unscalePrice(scaled, decimals[0], decimals[1]);
+  return unscalePrice(scaled, tokens[0].decimals, tokens[1].decimals);
 };
 
-export const getPriceAtTick = async (tick: number, poolAddress?: Address) => {
-  const tokens = await getPoolTokens(poolAddress);
-
-  const decimals = await Promise.all(
-    tokens.map(token => token.read.decimals()),
-  );
+export const getPriceAtTick = async (
+  tick: number,
+  pool: Address | PoolContract,
+) => {
+  const tokens = await getPoolTokensData(pool);
   const scaled = await uniswapMathLensContract.read.getPriceAtTick([tick]);
-  return unscalePrice(scaled, decimals[0], decimals[1]);
+  return unscalePrice(scaled, tokens[0].decimals, tokens[1].decimals);
 };
 
 export const batchGetPriceAtTick = async (
   ticks: number[],
-  poolAddress?: Address,
+  pool: Address | PoolContract,
 ) => {
-  const tokens = await getPoolTokens(poolAddress);
+  const tokens = await getPoolTokensData(pool);
 
-  const decimals = await Promise.all(
-    tokens.map(token => token.read.decimals()),
-  );
   const scaledList = await uniswapMathLensContract.read.batchGetPriceAtTick([
     ticks,
   ]);
   const result = scaledList.map(scaled =>
-    unscalePrice(scaled, decimals[0], decimals[1]),
+    unscalePrice(scaled, tokens[0].decimals, tokens[1].decimals),
   );
   return result;
 };
@@ -115,9 +113,10 @@ export const getAmountsFromLiquidity = async (
   tickLower: number,
   tickUpper: number,
   liquidity: bigint,
+  pool: Address | PoolContract,
 ) => {
-  const currentTick = await getCurrentTick();
-  const tokens = await getPoolTokens();
+  const currentTick = await getCurrentTick(pool);
+  const tokens = await getPoolTokens(pool);
 
   const decimals = await Promise.all(
     tokens.map(token => token.read.decimals()),
@@ -136,9 +135,10 @@ export const batchGetAmountsFromLiquidity = async (
   tickLower: number[],
   tickUpper: number[],
   liquidity: bigint[],
+  pool: Address | PoolContract,
 ) => {
-  const currentTick = await getCurrentTick();
-  const tokens = await getPoolTokens();
+  const currentTick = await getCurrentTick(pool);
+  const tokens = await getPoolTokens(pool);
 
   const decimals = await Promise.all(
     tokens.map(token => token.read.decimals()),
@@ -174,58 +174,4 @@ export const batchGetAmountsFromLiquidity = async (
     amounts0,
     amounts1,
   };
-};
-
-export const getToken0ToSupply = async (
-  currentTick: number,
-  tickLower: number,
-  tickUpper: number,
-) => {
-  if (!account) {
-    throw new Error('Account not connected');
-  }
-  if (tickUpper >= currentTick) {
-    throw new Error('Can only supply token0 in lower than current tick');
-  }
-  const tokenAddress = await primePoolContract.read.token0();
-  const tokenContract = erc20(tokenAddress);
-
-  const balance = await tokenContract.read.balanceOf([account.address]);
-  const balanceToSupply = (balance * 9n) / 10n;
-
-  const liquidity =
-    await uniswapMathLensContract.read.getLiquidityForAmount0Ticks([
-      tickLower,
-      tickUpper,
-      balanceToSupply,
-    ]);
-
-  return liquidity;
-};
-
-export const getToken1ToSupply = async (
-  currentTick: number,
-  tickLower: number,
-  tickUpper: number,
-) => {
-  if (!account) {
-    throw new Error('Account not connected');
-  }
-  if (tickLower <= currentTick) {
-    throw new Error('Can only supply token1 in upper than current tick');
-  }
-  const tokenAddress = await primePoolContract.read.token1();
-  const tokenContract = erc20(tokenAddress);
-
-  const balance = await tokenContract.read.balanceOf([account.address]);
-  const balanceToSupply = (balance * 9n) / 10n;
-
-  const liquidity =
-    await uniswapMathLensContract.read.getLiquidityForAmount1Ticks([
-      tickLower,
-      tickUpper,
-      balanceToSupply,
-    ]);
-
-  return liquidity;
 };

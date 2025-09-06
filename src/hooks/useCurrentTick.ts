@@ -1,7 +1,9 @@
 import {useEffect, useState} from 'react';
+import type {Address} from 'viem';
+import type {PoolContract} from '~/lib/contracts';
 import {getCurrentTick} from '~/lib/uniswap';
 
-export const useCurrentTick = () => {
+export const useCurrentTick = (pool?: Address | PoolContract) => {
   const [currentTick, setCurrentTick] = useState<{
     rounded?: number;
     exact?: number;
@@ -9,11 +11,12 @@ export const useCurrentTick = () => {
 
   useEffect(() => {
     const fetchCurrentTick = async () => {
-      const currentTick = await getCurrentTick();
+      if (!pool) return;
+      const currentTick = await getCurrentTick(pool);
       setCurrentTick(currentTick);
     };
     void fetchCurrentTick();
-  }, []);
+  }, [pool]);
 
   return currentTick || {};
 };

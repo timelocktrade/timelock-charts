@@ -17,7 +17,7 @@ const ZAddress = z
 const configSchema = z.object({
   rpcUrl: z.string().min(1, 'RPC URL is required'),
   ponderEndpoint: z.string().min(1, 'Ponder endpoint is required'),
-  primePoolAddress: ZAddress,
+  poolAddresses: z.array(ZAddress),
   handlerAddress: ZAddress,
   positionManagerAddress: ZAddress,
   uniswapMathLensAddress: ZAddress,
@@ -29,7 +29,9 @@ export const config = configSchema.parse({
   rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
   ponderEndpoint:
     process.env.NEXT_PUBLIC_PONDER_ENDPOINT || 'http://localhost:42069',
-  primePoolAddress: process.env.NEXT_PUBLIC_PRIME_POOL_ADDRESS,
+  poolAddresses: process.env.NEXT_PUBLIC_POOL_ADDRESSES?.split(',').filter(
+    a => a,
+  ),
   handlerAddress: process.env.NEXT_PUBLIC_HANDLER_ADDRESS,
   positionManagerAddress: process.env.NEXT_PUBLIC_POSITION_MANAGER_ADDRESS,
   uniswapMathLensAddress: process.env.NEXT_PUBLIC_UNISWAP_MATH_LENS_ADDRESS,

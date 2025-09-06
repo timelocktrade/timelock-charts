@@ -29,6 +29,16 @@ export const viemClient = account
     })
   : createPublicClient({chain: monadTestnet, transport: http(config.rpcUrl)});
 
+export type PoolContract = ReturnType<typeof uniswapPool>;
+
+export const uniswapPool = (address: Address) =>
+  getContract({abi: uniswapV3PoolAbi, address, client: viemClient});
+
+export const erc20 = (address: Address) =>
+  getContract({abi: erc20Abi, address, client: viemClient});
+
+export const poolContracts = config.poolAddresses.map(uniswapPool);
+
 export const handlerContract = getContract({
   abi: handlerAbi,
   address: config.handlerAddress,
@@ -38,12 +48,6 @@ export const handlerContract = getContract({
 export const positionManagerContract = getContract({
   abi: positionManagerAbi,
   address: config.positionManagerAddress,
-  client: viemClient,
-});
-
-export const primePoolContract = getContract({
-  abi: uniswapV3PoolAbi,
-  address: config.primePoolAddress,
   client: viemClient,
 });
 
@@ -60,9 +64,3 @@ export const swapRouterContract = config.swapRouterAddress
       client: viemClient,
     })
   : undefined;
-
-export const uniswapPool = (address: Address) =>
-  getContract({abi: uniswapV3PoolAbi, address, client: viemClient});
-
-export const erc20 = (address: Address) =>
-  getContract({abi: erc20Abi, address, client: viemClient});

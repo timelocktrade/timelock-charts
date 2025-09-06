@@ -11,18 +11,15 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
+import {Address} from 'viem';
 import {useCurrentPrice} from '~/hooks/useCurrentPrice';
 import {useCurrentTick} from '~/hooks/useCurrentTick';
+import {useLiquidityPositions} from '~/hooks/useLiquidityPositions';
 import {usePoolData} from '~/hooks/usePoolData';
-import {type Amount, scaledAdd, scaledDiv} from '~/lib/numberUtils';
+import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
 
 import type {LiquidityPosition} from '~/lib/timelock';
 import {batchGetPriceAtTick} from '~/lib/uniswap';
-
-interface LiquidityChartProps {
-  positions: LiquidityPosition[];
-  currentTick?: number;
-}
 
 const formatLiquidity = (value: number | bigint) => {
   value = Number(value);
@@ -72,7 +69,10 @@ const usePriceData = (positions: LiquidityPosition[]) => {
 
       if (ticks.length === 0) return;
 
-      const prices = await batchGetPriceAtTick(ticks);
+      const prices = await batchGetPriceAtTick(
+        ticks,
+        positions[0].pool! as Address,
+      );
       const priceMap = new Map<number, number>();
 
       for (const i in ticks) {
@@ -188,12 +188,12 @@ const useChartData = (
 
 const useTVL = (positions: LiquidityPosition[]) => {
   return useMemo(() => {
-    let totalAmount0 = positions[0].amount0;
-    let totalAmount1 = positions[0].amount1;
-    let totalUsedAmount0 = positions[0].usedAmount0;
-    let totalUsedAmount1 = positions[0].usedAmount1;
+    let totalAmount0 = zero;
+    let totalAmount1 = zero;
+    let totalUsedAmount0 = zero;
+    let totalUsedAmount1 = zero;
 
-    for (let i = 1; i < positions.length; i++) {
+    for (let i = 0; i < positions.length; i++) {
       const {amount0, amount1, usedAmount0, usedAmount1} = positions[i];
 
       totalAmount0 = scaledAdd(totalAmount0, amount0);
@@ -210,11 +210,16 @@ const useTVL = (positions: LiquidityPosition[]) => {
   }, [positions]);
 };
 
-export function LiquidityChart({positions}: LiquidityChartProps) {
-  const currentTick = useCurrentTick();
-  const currentPrice = useCurrentPrice();
+interface LiquidityChartProps {
+  pool: Address;
+}
 
-  const poolData = usePoolData();
+export function LiquidityChart({pool}: LiquidityChartProps) {
+  const positions = useLiquidityPositions(pool);
+  const currentTick = useCurrentTick(pool);
+  const currentPrice = useCurrentPrice(pool);
+
+  const poolData = usePoolData(pool);
   const priceData = usePriceData(positions);
 
   const {totalAmount0, totalAmount1, totalUsedAmount0, totalUsedAmount1} =
@@ -242,16 +247,12 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
 
   return (
     <div className="w-full">
-      <div className="my-8 rounded-lg space-y-2">
-        <div className="text-md font-medium text-gray-400">
-          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/
-          {token0Label}
-        </div>
-        <div className="text-md font-medium text-gray-400">
-          Current Tick: {currentTick.exact?.toFixed(2)}
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">
+          {poolData ? `${token0Label}/${token1Label}` : 'Loading...'}
+        </h1>
       </div>
-      <div className="my-8 rounded-lg space-y-2">
+      <div className="my-8 rounded-lg space-y-2 flex w-full justify-between pr-12">
         <div className="text-md font-medium text-gray-400">
           TVL: {totalAmount0?.unscaled.toFixed(2)} {token0Label},{' '}
           {totalAmount1?.unscaled.toFixed(2)} {token1Label}
@@ -259,6 +260,13 @@ export function LiquidityChart({positions}: LiquidityChartProps) {
         <div className="text-md font-medium text-gray-400">
           Borrowed: {totalUsedAmount0?.unscaled.toPrecision(2)} {token0Label},{' '}
           {totalUsedAmount1?.unscaled.toPrecision(2)} {token1Label}
+        </div>
+        <div className="text-md font-medium text-gray-400">
+          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/
+          {token0Label}
+        </div>
+        <div className="text-md font-medium text-gray-400">
+          Current Tick: {currentTick.exact?.toFixed(2)}
         </div>
       </div>
 
