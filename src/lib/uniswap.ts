@@ -99,7 +99,6 @@ export const batchGetPriceAtTick = async (
   pool: Address | PoolContract,
 ) => {
   const tokens = await getPoolTokensData(pool);
-
   const scaledList = await uniswapMathLensContract.read.batchGetPriceAtTick([
     ticks,
   ]);
@@ -116,11 +115,8 @@ export const getAmountsFromLiquidity = async (
   pool: Address | PoolContract,
 ) => {
   const currentTick = await getCurrentTick(pool);
-  const tokens = await getPoolTokens(pool);
+  const tokens = await getPoolTokensData(pool);
 
-  const decimals = await Promise.all(
-    tokens.map(token => token.read.decimals()),
-  );
   const amounts =
     await uniswapMathLensContract.read.getAmountsForLiquidityTicks([
       currentTick.exact,
@@ -128,7 +124,7 @@ export const getAmountsFromLiquidity = async (
       tickUpper,
       liquidity,
     ]);
-  return amounts.map((scaled, i) => unscaleAmount(scaled, decimals[i]));
+  return amounts.map((scaled, i) => unscaleAmount(scaled, tokens[i].decimals));
 };
 
 export const batchGetAmountsFromLiquidity = async (
@@ -138,11 +134,8 @@ export const batchGetAmountsFromLiquidity = async (
   pool: Address | PoolContract,
 ) => {
   const currentTick = await getCurrentTick(pool);
-  const tokens = await getPoolTokens(pool);
+  const tokens = await getPoolTokensData(pool);
 
-  const decimals = await Promise.all(
-    tokens.map(token => token.read.decimals()),
-  );
   const currentTicksArray = new Array(tickLower.length).fill(currentTick.exact);
 
   const amounts =
@@ -161,16 +154,16 @@ export const batchGetAmountsFromLiquidity = async (
 
   for (const scaled of amounts[0]) {
     totalAmount0 += scaled;
-    amounts0.push(unscaleAmount(scaled, decimals[0]));
+    amounts0.push(unscaleAmount(scaled, tokens[0].decimals));
   }
   for (const scaled of amounts[1]) {
     totalAmount1 += scaled;
-    amounts1.push(unscaleAmount(scaled, decimals[1]));
+    amounts1.push(unscaleAmount(scaled, tokens[1].decimals));
   }
 
   return {
-    totalAmount0: unscaleAmount(totalAmount0, decimals[0]),
-    totalAmount1: unscaleAmount(totalAmount1, decimals[1]),
+    totalAmount0: unscaleAmount(totalAmount0, tokens[0].decimals),
+    totalAmount1: unscaleAmount(totalAmount1, tokens[1].decimals),
     amounts0,
     amounts1,
   };
