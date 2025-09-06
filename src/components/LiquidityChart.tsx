@@ -339,71 +339,96 @@ export function LiquidityChart({pool}: LiquidityChartProps) {
                   : '0';
 
                 return (
-                  <div className="space-y-3 min-w-96">
-                    <div className="text-sm font-semibold border-b border-gray-200 pb-1">
-                      Tick: <span className="text-blue-600">{tick}</span> |
-                      Price:{' '}
-                      <span className="text-green-600">
-                        {entry?.price?.toFixed(4) || 'N/A'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                        Total Liquidity
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            Liquidity
+                  <div className="space-y-4 min-w-80 bg-gradient-to-br from-slate-50 to-white rounded-lg shadow-sm">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-slate-600">
+                            Tick:
                           </span>
-                          <span className="font-medium">
-                            {formatLiquidity(entry.totalLiquidity)}
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md font-semibold text-sm">
+                            {tick}
                           </span>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            {token0Label}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-slate-600">
+                            Price:
                           </span>
-                          <span className="font-medium">{amount0Text}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            {token1Label}
+                          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md font-semibold text-sm">
+                            {entry?.price?.toFixed(4) || 'N/A'}
                           </span>
-                          <span className="font-medium">{amount1Text}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-orange-600 uppercase tracking-wide">
-                        Borrowed
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <div className="flex items-center mb-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                          <span className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                            Total Liquidity
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-slate-500 mb-1">
+                              Liquidity
+                            </div>
+                            <div className="font-bold text-slate-800 text-sm">
+                              {formatLiquidity(entry.totalLiquidity)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-slate-500 mb-1">
+                              {token0Label}
+                            </div>
+                            <div className="font-bold text-slate-800 text-sm">
+                              {amount0Text}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-slate-500 mb-1">
+                              {token1Label}
+                            </div>
+                            <div className="font-bold text-slate-800 text-sm">
+                              {amount1Text}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            Liquidity
-                          </span>
-                          <span className="font-medium">
-                            {formatLiquidity(entry.usedLiquidity)}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            {token0Label}
-                          </span>
-                          <span className="font-medium text-orange-700">
-                            {usedAmount0Text}
+
+                      <div className="bg-orange-50 rounded-lg p-3">
+                        <div className="flex items-center mb-3">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                          <span className="text-sm font-semibold  uppercase tracking-wide">
+                            Borrowed Liquidity
                           </span>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">
-                            {token1Label}
-                          </span>
-                          <span className="font-medium text-orange-700">
-                            {usedAmount1Text}
-                          </span>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-orange-600 mb-1">
+                              Liquidity
+                            </div>
+                            <div className="font-bold text-orange-800 text-sm">
+                              {formatLiquidity(entry.usedLiquidity)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-orange-600 mb-1">
+                              {token0Label}
+                            </div>
+                            <div className="font-bold text-orange-800 text-sm">
+                              {usedAmount0Text}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-orange-600 mb-1">
+                              {token1Label}
+                            </div>
+                            <div className="font-bold text-orange-800 text-sm">
+                              {usedAmount1Text}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
