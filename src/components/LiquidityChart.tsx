@@ -12,14 +12,15 @@ import {
   Cell,
 } from 'recharts';
 import {Address} from 'viem';
+import {TrendingUp, DollarSign, Activity, BarChart3} from 'lucide-react';
+import {Card, CardContent, CardHeader, CardTitle} from '~/components/ui/card';
+import {Badge} from '~/components/ui/badge';
+
 import {useCurrentPrice} from '~/hooks/useCurrentPrice';
 import {useLiquidityPositions} from '~/hooks/useLiquidityPositions';
 import {usePoolData} from '~/hooks/usePoolData';
-import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
-import {Card, CardContent, CardHeader, CardTitle} from '~/components/ui/card';
-import {Badge} from '~/components/ui/badge';
-import {TrendingUp, DollarSign, Activity, BarChart3} from 'lucide-react';
 
+import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
 import type {LiquidityPosition} from '~/lib/timelock';
 import {batchGetPriceAtTick} from '~/lib/uniswap';
 
@@ -377,19 +378,7 @@ export function LiquidityChart({pool}: LiquidityChartProps) {
                 />
                 <YAxis tickFormatter={formatLiquidity} fontSize={12} />
                 <Tooltip
-                  formatter={(value: number, name: string) => {
-                    return undefined;
-                    // return ["", ""];
-                    // let displayName = '';
-                    // if (name === 'usedLiquidity')
-                    //   displayName = 'Borrowed Liquidity';
-                    // else if (name === 'availableLiquidity')
-                    //   displayName = 'Available Liquidity';
-                    // else if (name === 'totalLiquidity')
-                    //   displayName = 'Total Liquidity';
-
-                    // return [formatLiquidity(value), displayName];
-                  }}
+                  formatter={() => undefined}
                   labelFormatter={(tick: number) => {
                     const entry = chartData.find(d => d.tick === tick)!;
 
