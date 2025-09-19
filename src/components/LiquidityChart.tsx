@@ -16,6 +16,10 @@ import {useCurrentPrice} from '~/hooks/useCurrentPrice';
 import {useLiquidityPositions} from '~/hooks/useLiquidityPositions';
 import {usePoolData} from '~/hooks/usePoolData';
 import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
+import {Card, CardContent, CardHeader, CardTitle} from '~/components/ui/card';
+import {Badge} from '~/components/ui/badge';
+import {Separator} from '~/components/ui/separator';
+import {TrendingUp, DollarSign, Activity, BarChart3} from 'lucide-react';
 
 import type {LiquidityPosition} from '~/lib/timelock';
 import {batchGetPriceAtTick} from '~/lib/uniswap';
@@ -236,252 +240,332 @@ export function LiquidityChart({pool}: LiquidityChartProps) {
   const token1Label = poolData?.tokens[1].symbol || 'Token1';
 
   return (
-    <div className="w-full">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">
-          {poolData ? `${token0Label}/${token1Label}` : 'Loading...'}
-        </h1>
-      </div>
-      <div className="my-8 rounded-lg space-y-2 flex w-full justify-between pr-12">
-        <div className="text-md font-medium text-gray-400">
-          TVL: {totalAmount0?.unscaled.toFixed(2)} {token0Label},{' '}
-          {totalAmount1?.unscaled.toFixed(2)} {token1Label}
-        </div>
-        <div className="text-md font-medium text-gray-400">
-          Borrowed: {totalUsedAmount0?.unscaled.toPrecision(2)} {token0Label},{' '}
-          {totalUsedAmount1?.unscaled.toPrecision(2)} {token1Label}
-        </div>
-        <div className="text-md font-medium text-gray-400">
-          Current Price: {currentPrice?.unscaled.toFixed(2)} {token1Label}/
-          {token0Label}
-        </div>
-        <div className="text-md font-medium text-gray-400">
-          Current Tick: {currentTick.exact?.toFixed(2)}
-        </div>
-      </div>
-
-      {/* Color Legend */}
-      <div className="flex items-center gap-6 my-8 rounded-lg">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col w-4 h-4">
-            <div className="w-4 h-2 bg-[#6666a8] opacity-30 rounded-t"></div>
-            <div className="w-4 h-2 bg-[#6666a8] rounded-b"></div>
+    <div className="w-full space-y-6">
+      {/* Pool Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500">
+            <BarChart3 className="w-5 h-5 text-white" />
           </div>
-          <span className="text-sm font-medium text-gray-400">
-            {token1Label} (Top: Borrowed, Bottom: Available)
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col w-4 h-4">
-            <div className="w-4 h-2 bg-[#cc6666] opacity-30 rounded-t"></div>
-            <div className="w-4 h-2 bg-[#cc6666] rounded-b"></div>
-          </div>
-          <span className="text-sm font-medium text-gray-400">
-            {token0Label} (Top: Borrowed, Bottom: Available)
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
           <div>
-            <div className="w-0.5 h-1.75 mb-0.5 bg-[#ff4444] border-dotted border-1 border-[#ff4444]"></div>
-            <div className="w-0.5 h-1.75 bg-[#ff4444] border-dotted border-1 border-[#ff4444]"></div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {poolData ? `${token0Label}/${token1Label}` : 'Loading Pool...'}
+            </h2>
+            <p className="text-muted-foreground text-sm font-mono">{pool}</p>
           </div>
-          <span className="text-sm font-medium text-gray-400">
-            Current Tick
-          </span>
         </div>
+        <Badge variant="outline" className="flex items-center gap-2">
+          <Activity className="w-3 h-3" />
+          Active
+        </Badge>
       </div>
-      <div className="w-full h-96">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{top: 5, right: 30, left: 20, bottom: 5}}
-            barCategoryGap={0.61}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="tick"
-              type="number"
-              scale="linear"
-              domain={['dataMin', 'dataMax']}
-            />
-            <YAxis tickFormatter={formatLiquidity} />
-            <Tooltip
-              formatter={(value: number, name: string) => {
-                return undefined;
-                // return ["", ""];
-                // let displayName = '';
-                // if (name === 'usedLiquidity')
-                //   displayName = 'Borrowed Liquidity';
-                // else if (name === 'availableLiquidity')
-                //   displayName = 'Available Liquidity';
-                // else if (name === 'totalLiquidity')
-                //   displayName = 'Total Liquidity';
 
-                // return [formatLiquidity(value), displayName];
-              }}
-              labelFormatter={(tick: number) => {
-                const entry = chartData.find(d => d.tick === tick)!;
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <DollarSign className="w-3 h-3" />
+              TVL
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm space-y-1">
+              <div className="font-semibold">
+                {totalAmount0?.unscaled.toFixed(2)} {token0Label}
+              </div>
+              <div className="font-semibold">
+                {totalAmount1?.unscaled.toFixed(2)} {token1Label}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                const amount0Text = entry?.amount0.unscaled
-                  ? formatAmount(entry.amount0.unscaled)
-                  : '0';
+        <Card className="border-l-4 border-l-orange-500">
+          <CardHeader>
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" />
+              Borrowed
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm space-y-1">
+              <div className="font-semibold">
+                {totalUsedAmount0?.unscaled.toPrecision(2)} {token0Label}
+              </div>
+              <div className="font-semibold">
+                {totalUsedAmount1?.unscaled.toPrecision(2)} {token1Label}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                const amount1Text = entry?.amount1.unscaled
-                  ? formatAmount(entry.amount1.unscaled)
-                  : '0';
+        <Card className="border-l-4 border-l-emerald-500">
+          <CardHeader>
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Current Price
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-semibold">
+              {currentPrice?.unscaled.toFixed(2)} {token1Label}/{token0Label}
+            </div>
+          </CardContent>
+        </Card>
 
-                const usedAmount0Text = entry?.usedAmount0.unscaled
-                  ? formatAmount(entry.usedAmount0.unscaled)
-                  : '0';
-
-                const usedAmount1Text = entry?.usedAmount1.unscaled
-                  ? formatAmount(entry.usedAmount1.unscaled)
-                  : '0';
-
-                return (
-                  <div className="space-y-4 min-w-80 bg-gradient-to-br from-slate-50 to-white rounded-lg shadow-sm">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-slate-600">
-                            Tick:
-                          </span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md font-semibold text-sm">
-                            {tick}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-slate-600">
-                            Price:
-                          </span>
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md font-semibold text-sm">
-                            {entry?.price?.toFixed(4) || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <div className="flex items-center mb-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                          <span className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                            Total Liquidity
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="text-center">
-                            <div className="text-xs text-slate-500 mb-1">
-                              Liquidity
-                            </div>
-                            <div className="font-bold text-slate-800 text-sm">
-                              {formatLiquidity(entry.totalLiquidity)}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-slate-500 mb-1">
-                              {token0Label}
-                            </div>
-                            <div className="font-bold text-slate-800 text-sm">
-                              {amount0Text}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-slate-500 mb-1">
-                              {token1Label}
-                            </div>
-                            <div className="font-bold text-slate-800 text-sm">
-                              {amount1Text}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-orange-50 rounded-lg p-3">
-                        <div className="flex items-center mb-3">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                          <span className="text-sm font-semibold  uppercase tracking-wide">
-                            Borrowed Liquidity
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="text-center">
-                            <div className="text-xs text-orange-600 mb-1">
-                              Liquidity
-                            </div>
-                            <div className="font-bold text-orange-800 text-sm">
-                              {formatLiquidity(entry.usedLiquidity)}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-orange-600 mb-1">
-                              {token0Label}
-                            </div>
-                            <div className="font-bold text-orange-800 text-sm">
-                              {usedAmount0Text}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-orange-600 mb-1">
-                              {token1Label}
-                            </div>
-                            <div className="font-bold text-orange-800 text-sm">
-                              {usedAmount1Text}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }}
-              contentStyle={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                color: '#333333',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-              labelStyle={{color: '#333333', fontWeight: '600'}}
-            />
-            {/* Available liquidity (bottom part of stack) */}
-            <Bar
-              dataKey="availableLiquidity"
-              stackId="liquidity"
-              strokeWidth={0.5}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-available-${index}`}
-                  fill={getBarColor(entry.tick)}
-                  stroke={getBarColor(entry.tick)}
-                />
-              ))}
-            </Bar>
-            {/* Used liquidity (top part of stack) */}
-            <Bar dataKey="usedLiquidity" stackId="liquidity" strokeWidth={0.5}>
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-used-${index}`}
-                  fill={getBarColor(entry.tick)}
-                  fillOpacity={0.3}
-                  stroke={getBarColor(entry.tick)}
-                />
-              ))}
-            </Bar>
-            {currentTick !== undefined && (
-              <ReferenceLine
-                x={currentTick.rounded}
-                stroke="#ff4444"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                label={{value: 'Current Tick', position: 'top'}}
-              />
-            )}
-          </BarChart>
-        </ResponsiveContainer>
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader>
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Current Tick
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-semibold">
+              {currentTick.exact?.toFixed(2) || 'N/A'}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Chart Container */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-lg text-foreground">
+            Liquidity Distribution
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-6 pb-6">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col w-4 h-4">
+                <div className="w-4 h-2 bg-blue-500 opacity-30 rounded-t"></div>
+                <div className="w-4 h-2 bg-blue-500 rounded-b"></div>
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                {token1Label} (Top: Borrowed, Bottom: Available)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col w-4 h-4">
+                <div className="w-4 h-2 bg-slate-500 opacity-30 rounded-t"></div>
+                <div className="w-4 h-2 bg-slate-500 rounded-b"></div>
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                {token0Label} (Top: Borrowed, Bottom: Available)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-0.5 h-4 bg-red-500 border-dashed border-red-500"></div>
+              <span className="text-sm font-medium text-foreground">
+                Current Tick
+              </span>
+            </div>
+          </div>
+          <div className="w-full h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{top: 5, right: 30, left: 20, bottom: 5}}
+                barCategoryGap={0.61}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="tick"
+                  type="number"
+                  scale="linear"
+                  domain={['dataMin', 'dataMax']}
+                  fontSize={12}
+                />
+                <YAxis tickFormatter={formatLiquidity} fontSize={12} />
+                <Tooltip
+                  formatter={(value: number, name: string) => {
+                    return undefined;
+                    // return ["", ""];
+                    // let displayName = '';
+                    // if (name === 'usedLiquidity')
+                    //   displayName = 'Borrowed Liquidity';
+                    // else if (name === 'availableLiquidity')
+                    //   displayName = 'Available Liquidity';
+                    // else if (name === 'totalLiquidity')
+                    //   displayName = 'Total Liquidity';
+
+                    // return [formatLiquidity(value), displayName];
+                  }}
+                  labelFormatter={(tick: number) => {
+                    const entry = chartData.find(d => d.tick === tick)!;
+
+                    const amount0Text = entry?.amount0.unscaled
+                      ? formatAmount(entry.amount0.unscaled)
+                      : '0';
+
+                    const amount1Text = entry?.amount1.unscaled
+                      ? formatAmount(entry.amount1.unscaled)
+                      : '0';
+
+                    const usedAmount0Text = entry?.usedAmount0.unscaled
+                      ? formatAmount(entry.usedAmount0.unscaled)
+                      : '0';
+
+                    const usedAmount1Text = entry?.usedAmount1.unscaled
+                      ? formatAmount(entry.usedAmount1.unscaled)
+                      : '0';
+
+                    return (
+                      <div className="space-y-4 min-w-80 bg-gradient-to-br from-background to-muted/50 rounded-lg shadow-sm border p-3">
+                        <div className="flex items-center justify-between pb-3 border-b border-border">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-muted-foreground">
+                                Tick:
+                              </span>
+                              <Badge
+                                variant="secondary"
+                                className="font-semibold text-sm"
+                              >
+                                {tick}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-muted-foreground">
+                                Price:
+                              </span>
+                              <Badge
+                                variant="outline"
+                                className="font-semibold text-sm"
+                              >
+                                {entry?.price?.toFixed(4) || 'N/A'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                              <span className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                                Total Liquidity
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="text-center">
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  Liquidity
+                                </div>
+                                <div className="font-bold text-foreground text-sm">
+                                  {formatLiquidity(entry.totalLiquidity)}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  {token0Label}
+                                </div>
+                                <div className="font-bold text-foreground text-sm">
+                                  {amount0Text}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  {token1Label}
+                                </div>
+                                <div className="font-bold text-foreground text-sm">
+                                  {amount1Text}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-orange-50 dark:bg-orange-950/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
+                            <div className="flex items-center mb-3">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              <span className="text-sm font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                                Borrowed Liquidity
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="text-center">
+                                <div className="text-xs text-orange-600 dark:text-orange-400 mb-1">
+                                  Liquidity
+                                </div>
+                                <div className="font-bold text-orange-800 dark:text-orange-200 text-sm">
+                                  {formatLiquidity(entry.usedLiquidity)}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-xs text-orange-600 dark:text-orange-400 mb-1">
+                                  {token0Label}
+                                </div>
+                                <div className="font-bold text-orange-800 dark:text-orange-200 text-sm">
+                                  {usedAmount0Text}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-xs text-orange-600 dark:text-orange-400 mb-1">
+                                  {token1Label}
+                                </div>
+                                <div className="font-bold text-orange-800 dark:text-orange-200 text-sm">
+                                  {usedAmount1Text}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                  contentStyle={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    color: '#333333',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                  labelStyle={{color: '#333333', fontWeight: '600'}}
+                />
+                {/* Available liquidity (bottom part of stack) */}
+                <Bar
+                  dataKey="availableLiquidity"
+                  stackId="liquidity"
+                  strokeWidth={0.5}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-available-${index}`}
+                      fill={getBarColor(entry.tick)}
+                      stroke={getBarColor(entry.tick)}
+                    />
+                  ))}
+                </Bar>
+                {/* Used liquidity (top part of stack) */}
+                <Bar
+                  dataKey="usedLiquidity"
+                  stackId="liquidity"
+                  strokeWidth={0.5}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-used-${index}`}
+                      fill={getBarColor(entry.tick)}
+                      fillOpacity={0.3}
+                      stroke={getBarColor(entry.tick)}
+                    />
+                  ))}
+                </Bar>
+                {currentTick !== undefined && (
+                  <ReferenceLine
+                    x={currentTick.rounded}
+                    stroke="#ff4444"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    label={{value: 'Current Tick', position: 'top'}}
+                  />
+                )}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
