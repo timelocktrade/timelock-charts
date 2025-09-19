@@ -18,7 +18,6 @@ import {usePoolData} from '~/hooks/usePoolData';
 import {type Amount, scaledAdd, scaledDiv, zero} from '~/lib/numberUtils';
 import {Card, CardContent, CardHeader, CardTitle} from '~/components/ui/card';
 import {Badge} from '~/components/ui/badge';
-import {Separator} from '~/components/ui/separator';
 import {TrendingUp, DollarSign, Activity, BarChart3} from 'lucide-react';
 
 import type {LiquidityPosition} from '~/lib/timelock';
